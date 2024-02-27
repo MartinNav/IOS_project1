@@ -1,0 +1,5 @@
+#!/bin/bash
+arg_count=$#
+if [[ (($arg_count -eq 1 && "$1" == "--help")) || $arg_count==0 ]]; then
+  echo "Called help"
+fi
