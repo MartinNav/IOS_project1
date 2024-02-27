@@ -1,5 +1,16 @@
 #!/bin/bash
 arg_count=$#
-if [[ (($arg_count -eq 1 && "$1" == "--help")) || $arg_count==0 ]]; then
+if [[ ($arg_count -eq 1 && ("$1" == "--help" || "$1" == '-h')) || $arg_count -eq 0 ]]; then
   echo "Called help"
+  exit 0
 fi
+
+
+
+
+
+if [[ "$1"=="list" ]]; then
+ cat "${*: -1}" | grep "$2;"
+ exit 0
+fi
+
