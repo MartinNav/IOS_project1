@@ -1,4 +1,5 @@
 #!/bin/bash
+POSIXLY_CORRECT=yes
 arg_count=$#
 if [[ ($arg_count -eq 1 && ("$1" == "--help" || "$1" == '-h')) || $arg_count -eq 0 ]]; then
   echo "Called help"
@@ -14,3 +15,15 @@ if [[ "$1"=="list" ]]; then
  exit 0
 fi
 
+
+
+
+
+
+
+
+#What the hell is going on here????
+if [[ $arg_count -eq 2 ]]; then
+ cat "$2" | grep "$1;" | sort -r 
+ exit 0
+fi
