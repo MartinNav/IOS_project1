@@ -1,20 +1,39 @@
 #!/bin/bash
 POSIXLY_CORRECT=yes
 arg_count=$#
-if [[ ($arg_count -eq 1 && ("$1" == "--help" || "$1" == '-h')) || $arg_count -eq 0 ]]; then
-  echo "Called help"
+
+# Remove before submit
+#echo "$arg_count"
+function unqote()
+{
+  echo "$1"
+  return echo "$1" | tr -d '"' | tr -d "'"
+}
+
+if [[ ($arg_count -eq 1 && ("$1" == "--help" || "$1" == '-h')) || $arg_count -le 1 ]]; then
+  echo "usecase: $0 [-h|--help] [FILTER] [COMMAND] USER LOG"
   exit 0
 fi
 
 
 
+if [[ ("$1" == "list-currency") && ($arg_count -eq 3)]]; then
+  cat "$3" | grep "^$2;*.;*.;*." | cut -d ';' -f3 | sort | uniq
+  exit 0
+fi
 
 
-if [[ "$1"=="list" ]]; then
+if [[ ("$1" == "list") && ($arg_count -le 3) ]]; then
  cat "${*: -1}" | grep "$2;"
  exit 0
 fi
 
+if [[ ("$1" == "status") ]]; then
+  #tradername=unqote "$2"
+  cat ${*: -1} | grep "$2" | awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
+  exit 0
+  
+fi
 
 
 
@@ -23,7 +42,7 @@ fi
 
 
 #What the hell is going on here????
-if [[ $arg_count -eq 2 ]]; then
+if [[ ($arg_count -le 2) ]]; then
  cat "$2" | grep "$1;" | sort -r 
  exit 0
 fi
