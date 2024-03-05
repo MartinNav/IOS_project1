@@ -36,6 +36,13 @@ if [[ ("$1" == "status") ]]; then
 fi
 
 
+if [[ ("$1" == "profit") ]]; then
+  #tradername=unqote "$2"
+  #echo "$XTF_PROFIT"
+  cat ${*: -1} | grep "$2" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies) if(currencies[currency]<0){printf(\"%s : %.4f\n\", currency, currencies[currency])} else {printf(\"%s : %.4f\n\", currency, (currencies[currency]+(currencies[currency]*($XTF_PROFIT/100))))}}" | sort
+  exit 0
+  
+fi
 
 
 
