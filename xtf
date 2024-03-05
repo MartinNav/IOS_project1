@@ -30,7 +30,17 @@ fi
 
 if [[ ("$1" == "status") ]]; then
   #tradername=unqote "$2"
-  cat ${*: -1} | grep "$2" | awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
+  unzipped=$(gunzip -c ${*: -1})
+    #echo "$?"
+
+   # echo "$unzipped"
+  if [[ $? -ne 0 ]]; then
+    echo "fallback"
+    unzipped=$(cat ${*: -1})
+    #echo "$unzipped"
+  fi
+
+  echo "$unzipped" | grep "$2" | awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
   exit 0
   
 fi
