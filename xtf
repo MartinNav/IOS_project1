@@ -54,21 +54,23 @@ fi
 
 
 if [[ ("$1" == "list") && ($arg_count -le 3) ]]; then
-  unzipped=$(gunzip -c ${*: -1})
-  if [[ $? -ne 0 ]]; then
-    unzipped=$(cat ${*: -1})
-  fi
- cat "$unzipped" | grep "$2;"
+  #unzipped=$(gunzip -c ${*: -1})
+  #if [[ $? -ne 0 ]]; then
+   # unzipped=$(cat ${*: -1})
+  #fi
+  unzipped=$(read_file ${*:-1})
+ echo "$unzipped" | grep "$2;"
  exit 0
 fi
 
 if [[ ("$1" == "status") ]]; then
-  unzipped=$(gunzip -c ${*: -1})
-  if [[ $? -ne 0 ]]; then
-    unzipped=$(cat ${*: -1})
+  #unzipped=$(gunzip -c ${*: -1})
+  #if [[ $? -ne 0 ]]; then
+  #  unzipped=$(cat ${*: -1})
     #echo "$unzipped"
-  fi
+  #fi
 
+  unzipped=$(read_file ${*:-1})
   echo "$unzipped" | grep "$2" | awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
   exit 0
   
@@ -78,11 +80,20 @@ fi
 if [[ ("$1" == "profit") ]]; then
   #tradername=unqote "$2"
   #echo "$XTF_PROFIT"
-  unzipped=$(gunzip -c ${*: -1})
-  if [[ $? -ne 0 ]]; then
-    unzipped=$(cat ${*: -1})
-  fi
-  cat "$unzipped" | grep "$2" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies) if(currencies[currency]<0){printf(\"%s : %.4f\n\", currency, currencies[currency])} else {printf(\"%s : %.4f\n\", currency, (currencies[currency]+(currencies[currency]*($XTF_PROFIT/100))))}}" | sort
+  #unzipped=$(gunzip -c ${*: -1})
+  #if [[ $? -ne 0 ]]; then
+  #  unzipped=$(cat ${*: -1})
+  #fi
+  unzipped=$(read_file ${*:-1})
+  if [[ -z "${XTF_PROFIT+x}" ]]; then
+  # XTF_PROFIT is set
+  XTF_PROFIT=0
+fi
+
+  echo "$unzipped" | grep "$2" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies){ if(currencies[currency]<0)
+  printf(\"%s : %.4f\n\", currency, currencies[currency]);
+else 
+  printf(\"%s : %.4f\n\", currency, (currencies[currency]+(currencies[currency]*($XTF_PROFIT/100))));}}" | sort
   exit 0
   
 fi
