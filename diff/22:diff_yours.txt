@@ -1,1 +1,1 @@
-usecase: ./xtf [-h|--help] [FILTER] [COMMAND] USER LOG
+Please specify a file name as an argument.

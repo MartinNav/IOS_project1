@@ -9,6 +9,32 @@ function unqote()
   echo "$1"
   return echo "$1" | tr -d '"' | tr -d "'"
 }
+read_file() {
+  local file_name="$1"
+  # Check if file exists
+  if [[ ! -f "$file_name" ]]; then
+    exit 1
+  fi
+  local file_type="$(file -b "$file_name")"
+
+  # Check if file is gzipped
+  if [[ "$file_type" == *"gzip compressed"* ]]; then
+    # Use gunzip to decompress and read the file
+    echo "$(gunzip -c "$file_name")"
+  else
+    # Use cat to print the content of the uncompressed file
+    echo "$(cat "$file_name")"
+  fi
+}
+
+# Check if a file name is provided as an argument
+if [ $# -le 1 ]; then
+  echo "Please specify a file name as an argument."
+  exit 1
+fi
+
+# Call the function with the provided file name
+
 
 if [[ ($arg_count -eq 1 && ("$1" == "--help" || "$1" == '-h')) || $arg_count -le 1 ]]; then
   echo "usecase: $0 [-h|--help] [FILTER] [COMMAND] USER LOG"
@@ -18,24 +44,27 @@ fi
 
 
 if [[ ("$1" == "list-currency") && ($arg_count -eq 3)]]; then
-  cat "$3" | grep "^$2;*.;*.;*." | cut -d ';' -f3 | sort | uniq
+  #unzipped=$(gunzip -c $3)
+  #if [[ $? -ne 0 ]]; then
+   # unzipped=$(cat $3)
+  #fi
+  read_file $3 | grep "^$2;*.;*.;*." | cut -d ';' -f3 | sort | uniq
   exit 0
 fi
 
 
 if [[ ("$1" == "list") && ($arg_count -le 3) ]]; then
- cat "${*: -1}" | grep "$2;"
+  unzipped=$(gunzip -c ${*: -1})
+  if [[ $? -ne 0 ]]; then
+    unzipped=$(cat ${*: -1})
+  fi
+ cat "$unzipped" | grep "$2;"
  exit 0
 fi
 
 if [[ ("$1" == "status") ]]; then
-  #tradername=unqote "$2"
   unzipped=$(gunzip -c ${*: -1})
-    #echo "$?"
-
-   # echo "$unzipped"
   if [[ $? -ne 0 ]]; then
-    echo "fallback"
     unzipped=$(cat ${*: -1})
     #echo "$unzipped"
   fi
@@ -49,7 +78,11 @@ fi
 if [[ ("$1" == "profit") ]]; then
   #tradername=unqote "$2"
   #echo "$XTF_PROFIT"
-  cat ${*: -1} | grep "$2" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies) if(currencies[currency]<0){printf(\"%s : %.4f\n\", currency, currencies[currency])} else {printf(\"%s : %.4f\n\", currency, (currencies[currency]+(currencies[currency]*($XTF_PROFIT/100))))}}" | sort
+  unzipped=$(gunzip -c ${*: -1})
+  if [[ $? -ne 0 ]]; then
+    unzipped=$(cat ${*: -1})
+  fi
+  cat "$unzipped" | grep "$2" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies) if(currencies[currency]<0){printf(\"%s : %.4f\n\", currency, currencies[currency])} else {printf(\"%s : %.4f\n\", currency, (currencies[currency]+(currencies[currency]*($XTF_PROFIT/100))))}}" | sort
   exit 0
   
 fi
