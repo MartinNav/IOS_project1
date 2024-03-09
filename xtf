@@ -29,7 +29,7 @@ read_file() {
 }
 read_multiple_files(){
   for i in $(seq 1 $arg_count);do
-    if test -f "${!i}"; then
+    if [[ -f "${!i}" ]]; then
       local out=$(read_file "${!i}")
      echo "$out"
     fi
@@ -58,7 +58,7 @@ read_multiple_files(){
   done
 # Check if a file name is provided as an argument
 if [ $# -le 1 ]; then
-  echo "Please specify a file name as an argument."
+  #echo "Please specify a file name as an argument."
   exit 1
 fi
 
@@ -78,22 +78,24 @@ if [[ ("${!curr_arg}" == "list-currency") && ($arg_count -eq 3)]]; then
    # unzipped=$(cat $3)
   #fi
   trader_username=`expr $curr_arg + 1`
-  read_multiple_files "$@" | grep "^${!trader_username};*.;*.;*." | cut -d ';' -f3 | sort | uniq
+  read_multiple_files "$@" | grep "$curr_selector" | grep "^${!trader_username};*.;*.;*." | cut -d ';' -f3 | sort | uniq
   exit 0
 fi
 
 
-if [[ ("$1" == "list") && ($arg_count -le 3) ]]; then
+if [ "${!curr_arg}" = "list" ]; then
   #unzipped=$(gunzip -c ${*: -1})
   #if [[ $? -ne 0 ]]; then
    # unzipped=$(cat ${*: -1})
   #fi
   unzipped=$(read_multiple_files "$@")
- echo "$unzipped" | grep "$2;"
+  #echo "$unzipped"
+ trader_username=`expr $curr_arg + 1` 
+ echo "$unzipped" | grep "${!trader_username};" | grep "$curr_selector"
  exit 0
 fi
 
-if [[ ("$1" == "status") ]]; then
+if [ "$1" = "status" ]; then
   #unzipped=$(gunzip -c ${*: -1})
   #if [[ $? -ne 0 ]]; then
   #  unzipped=$(cat ${*: -1})
@@ -101,7 +103,7 @@ if [[ ("$1" == "status") ]]; then
   #fi
 
   unzipped=$(read_file ${*:-1})
-  echo "$unzipped" | grep "$2" | awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
+  echo "$unzipped" | grep "$2" | grep "$curr_selector"| awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
   exit 0
   
 fi
@@ -140,6 +142,6 @@ fi
 
 #What the hell is going on here????
 if [[ ($arg_count -le 2) ]]; then
- cat "$2" | grep "$1;" | sort -r 
+ cat "$2" | grep "$1;" | sort r 
  exit 0
 fi
