@@ -27,6 +27,14 @@ read_file() {
     echo "$(cat "$file_name")"
   fi
 }
+read_multiple_files(){
+  for i in $(seq 1 $arg_count);do
+    if test -f "${!i}"; then
+      local out=$(read_file "${!i}")
+     echo "$out"
+    fi
+  done
+}
 
 
   is_next_currency="false"
@@ -79,7 +87,7 @@ if [[ ("$1" == "list") && ($arg_count -le 3) ]]; then
   #if [[ $? -ne 0 ]]; then
    # unzipped=$(cat ${*: -1})
   #fi
-  unzipped=$(read_file ${*:-1})
+  unzipped=$(read_multiple_files "$@")
  echo "$unzipped" | grep "$2;"
  exit 0
 fi
@@ -107,7 +115,8 @@ if [ "${!curr_arg}" = "profit"  ]; then #Hacky solution
   #if [[ $? -ne 0 ]]; then
   #  unzipped=$(cat ${*: -1})
   #fi
-  unzipped=$(read_file "${@: -1}")
+  #echo "$@"
+  unzipped=$(read_multiple_files "$@")
   if [[ -z "${XTF_PROFIT+x}" ]]; then
   # XTF_PROFIT is set
   XTF_PROFIT=0
