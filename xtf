@@ -95,15 +95,17 @@ if [ "${!curr_arg}" = "list" ]; then
  exit 0
 fi
 
-if [ "$1" = "status" ]; then
+if [ "${!curr_arg}" = "status" ]; then
   #unzipped=$(gunzip -c ${*: -1})
   #if [[ $? -ne 0 ]]; then
   #  unzipped=$(cat ${*: -1})
     #echo "$unzipped"
   #fi
 
-  unzipped=$(read_file ${*:-1})
-  echo "$unzipped" | grep "$2" | grep "$curr_selector"| awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
+  unzipped=$(read_multiple_files "$@")
+
+  user_name_par_num=`expr $curr_arg + 1`
+  echo "$unzipped" | grep "${!user_name_par_num}" | grep "$curr_selector"| awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
   exit 0
   
 fi
