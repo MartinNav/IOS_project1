@@ -28,6 +28,25 @@ read_file() {
   fi
 }
 
+
+  is_next_currency="false"
+  curr_arg=1
+  for arg in "$@"
+  do
+    if [[ $is_next_currency="true" ]]; then
+      curr_arg=eval $($curr_arg+1) # TODO: find out how to do arithmetics and select argument by variable
+      if [[ "$curr_selector"==".*" ]]; then
+        curr_selector="[a-zA-Z _ \\. \\-]*\\;[0-9 : \\-]*;$arg\\;"
+        else
+        curr_selector="|$curr_selector[a-zA-Z _ \\. \\-]*\\;[0-9 : \\-]*;$arg\\;"
+      fi
+      is_next_currency="false"
+    fi
+    if [[ $arg == "-c" ]]; then
+      curr_arg=eval $($curr_arg+1)
+      is_next_currency="true"
+    fi
+  done
 # Check if a file name is provided as an argument
 if [ $# -le 1 ]; then
   echo "Please specify a file name as an argument."
@@ -77,31 +96,16 @@ if [[ ("$1" == "status") ]]; then
   
 fi
 
+echo "$curr_arg"
+#echo "$$curr_arg"
 
-if [[ ("$1" == "profit") || ("$2" == "profit") || ("$3" == "profit") || ("$4" == "profit") ]]; then #Hacky solution
+if [[ ("$$curr_arg" == "profit")  ]]; then #Hacky solution
   #tradername=unqote "$2"
   #echo "$XTF_PROFIT"
   #unzipped=$(gunzip -c ${*: -1})
   #if [[ $? -ne 0 ]]; then
   #  unzipped=$(cat ${*: -1})
   #fi
-  is_next_currency="false"
-  curr_arg=0
-  for arg in "$@"
-  do
-      curr_arg=$curr_arg+1
-    if [[ $is_next_currency="true" ]]; then
-      if [[ "$curr_selector"==".*" ]]; then
-        curr_selector="[a-zA-Z _ \\. \\-]*\\;[0-9 : \\-]*;$arg\\;"
-        else
-        curr_selector="|$curr_selector[a-zA-Z _ \\. \\-]*\\;[0-9 : \\-]*;$arg\\;"
-      fi
-      is_next_currency="false"
-    fi
-    if [[ $arg == "-c" ]]; then
-      is_next_currency="true"
-    fi
-  done
   unzipped=$(read_file "${@: -1}")
   if [[ -z "${XTF_PROFIT+x}" ]]; then
   # XTF_PROFIT is set
@@ -109,7 +113,7 @@ if [[ ("$1" == "profit") || ("$2" == "profit") || ("$3" == "profit") || ("$4" ==
 fi
  # read_file ${*:-1}
   #echo "${@: -1}"
-  echo "$unzipped"| grep "$curr_arg"| grep "$curr_selector" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies){ if(currencies[currency]<0)
+  echo "$unzipped"| grep "${curr_arg+1}"| grep "$curr_selector" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies){ if(currencies[currency]<0)
   { printf(\"%s : %.4f\n\", currency, currencies[currency])}
 else 
   {printf(\"%s : %.4f\n\", currency, (currencies[currency]+(currencies[currency]*($XTF_PROFIT/100))))}}}" | sort
