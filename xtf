@@ -72,12 +72,13 @@ fi
 
 
 
-if [[ ("$1" == "list-currency") && ($arg_count -eq 3)]]; then
+if [[ ("${!curr_arg}" == "list-currency") && ($arg_count -eq 3)]]; then
   #unzipped=$(gunzip -c $3)
   #if [[ $? -ne 0 ]]; then
    # unzipped=$(cat $3)
   #fi
-  read_file $3 | grep "^$2;*.;*.;*." | cut -d ';' -f3 | sort | uniq
+  trader_username=`expr $curr_arg + 1`
+  read_multiple_files "$@" | grep "^${!trader_username};*.;*.;*." | cut -d ';' -f3 | sort | uniq
   exit 0
 fi
 
