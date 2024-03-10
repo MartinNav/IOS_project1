@@ -45,9 +45,9 @@ read_multiple_files(){
       #echo "$curr_arg"
       curr_arg=`expr $curr_arg + 1` # TODO: find out how to do arithmetics and select argument by variable
       if [[ "$curr_selector"==".*" ]]; then
-        curr_selector="[a-zA-Z _ \\. \\-]*\\;[0-9 : \\-]*;$arg\\;"
+        curr_selector="[a-zA-Z _ \\. \\-]*\\;[0-9 : \\s \\-]*;$arg\\;"
         else
-        curr_selector="|$curr_selector[a-zA-Z _ \\. \\-]*\\;[0-9 : \\-]*;$arg\\;"
+        curr_selector="$curr_selector|[a-zA-Z _ \\. \\-]*\\;[0-9 : \\s \\-]*;$arg\\;"
       fi
       is_next_currency="false"
     fi
@@ -56,6 +56,9 @@ read_multiple_files(){
       is_next_currency="true"
     fi
   done
+  #if [[ ! -z "${curr_selector+x}" ]]; then
+  #  curr_selector="$curr_selector)"
+  #fi
 
   is_prev_date="false"
 for arg in "$@"
@@ -72,6 +75,20 @@ do
   fi
 done
 
+  is_past_date="false"
+for arg in "$@"
+do
+  if [ "$is_past_date" = "true" ]; then
+    past_date="$arg"
+    is_past_date="false"
+      curr_arg=`expr $curr_arg + 1`
+    
+  fi
+  if [ "$arg" = "-a" ]; then
+    is_past_date="true"
+      curr_arg=`expr $curr_arg + 1`
+  fi
+done
 
 # Check if a file name is provided as an argument
 if [ $# -le 1 ]; then
@@ -106,6 +123,18 @@ if [[ ("${!curr_arg}" == "list-currency")]]; then
    }
  }" )
   fi
+
+
+  if [[ ! -z "${past_date+x}" ]]; then
+     file_data=$( echo "$file_data" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date > strftime(\"$past_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+
+
  # echo "$file_data"
 
   echo "$file_data"| grep "$curr_selector" | grep "^${!trader_username};*.;*.;*." | cut -d ';' -f3 | sort | uniq
@@ -119,6 +148,22 @@ if [ "${!curr_arg}" = "list" ]; then
    # unzipped=$(cat ${*: -1})
   #fi
   unzipped=$(read_multiple_files "$@")
+  if [[ ! -z "${previous_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date < strftime(\"$previous_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+  if [[ ! -z "${past_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date > strftime(\"$past_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
   #echo "$unzipped"
  trader_username=`expr $curr_arg + 1` 
  echo "$unzipped" | grep "${!trader_username};" | grep "$curr_selector"
@@ -133,9 +178,25 @@ if [ "${!curr_arg}" = "status" ]; then
   #fi
 
   unzipped=$(read_multiple_files "$@")
+  if [[ ! -z "${previous_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date < strftime(\"$previous_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+  if [[ ! -z "${past_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date > strftime(\"$past_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
 
   user_name_par_num=`expr $curr_arg + 1`
-  echo "$unzipped" | grep "${!user_name_par_num}" | grep "$curr_selector"| awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}'
+  echo "$unzipped" | grep "${!user_name_par_num}" | grep "$curr_selector"| awk -F ';' '{currencies[$3]+=$4} END {for (currency in currencies) printf("%s : %.4f\n", currency, currencies[currency])}' | sort
   exit 0
   
 fi
@@ -160,6 +221,28 @@ fi
   #echo "${@: -1}"
   user_name_par_num=`expr $curr_arg + 1`
   #echo "${!arg_loc}"
+
+  if [[ ! -z "${previous_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date < strftime(\"$previous_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+
+
+
+  if [[ ! -z "${past_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date > strftime(\"$past_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+
+
   echo "$unzipped"| grep "${!user_name_par_num}"| grep "$curr_selector" | awk -F ';' "{currencies[\$3]+=\$4} END {for (currency in currencies){ if(currencies[currency]<0)
   { printf(\"%s : %.4f\n\", currency, currencies[currency])}
 else 
