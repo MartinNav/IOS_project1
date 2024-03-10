@@ -45,9 +45,9 @@ read_multiple_files(){
       #echo "$curr_arg"
       curr_arg=`expr $curr_arg + 1` # TODO: find out how to do arithmetics and select argument by variable
       if [[ "$curr_selector"==".*" ]]; then
-        curr_selector="[a-zA-Z _ \\. \\-]*\\;[0-9 : \\s \\-]*;$arg\\;"
+        curr_selector="[^;\\s\\t]*\\;[0-9 : \\s \\-]*;$arg\\;"
         else
-        curr_selector="$curr_selector|[a-zA-Z _ \\. \\-]*\\;[0-9 : \\s \\-]*;$arg\\;"
+        curr_selector="$curr_selector|[^;\\s\\t]*\\;[0-9 : \\s \\-]*;$arg\\;"
       fi
       is_next_currency="false"
     fi
@@ -215,7 +215,7 @@ if [ "${!curr_arg}" = "profit"  ]; then #Hacky solution
   unzipped=$(read_multiple_files "$@")
   if [[ -z "${XTF_PROFIT+x}" ]]; then
   # XTF_PROFIT is set
-  XTF_PROFIT=0
+  XTF_PROFIT=20
 fi
  # read_file ${*:-1}
   #echo "${@: -1}"
@@ -273,7 +273,7 @@ fi
  }" )
   fi
   #echo "$unzipped"
- echo "$unzipped" | grep "$1;" | grep "$curr_selector"
+ echo "$unzipped" | grep "${!curr_arg};" | grep "$curr_selector"
  exit 0
 #fi
 
