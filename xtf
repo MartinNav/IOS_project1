@@ -56,13 +56,30 @@ read_multiple_files(){
       is_next_currency="true"
     fi
   done
+
+  is_prev_date="false"
+for arg in "$@"
+do
+  if [ "$is_prev_date" = "true" ]; then
+    previous_date="$arg"
+    is_prev_date="false"
+      curr_arg=`expr $curr_arg + 1`
+    
+  fi
+  if [ "$arg" = "-b" ]; then
+    is_prev_date="true"
+      curr_arg=`expr $curr_arg + 1`
+  fi
+done
+
+
 # Check if a file name is provided as an argument
 if [ $# -le 1 ]; then
   #echo "Please specify a file name as an argument."
   exit 1
 fi
 
-# Call the function with the provided file name
+
 
 
 if [[ ($arg_count -eq 1 && ("$1" == "--help" || "$1" == '-h')) || $arg_count -le 1 ]]; then
@@ -72,13 +89,26 @@ fi
 
 
 
-if [[ ("${!curr_arg}" == "list-currency") && ($arg_count -eq 3)]]; then
+if [[ ("${!curr_arg}" == "list-currency")]]; then
   #unzipped=$(gunzip -c $3)
   #if [[ $? -ne 0 ]]; then
    # unzipped=$(cat $3)
   #fi
   trader_username=`expr $curr_arg + 1`
-  read_multiple_files "$@" | grep "$curr_selector" | grep "^${!trader_username};*.;*.;*." | cut -d ';' -f3 | sort | uniq
+  file_data=$(read_multiple_files "$@")
+
+  if [[ ! -z "${previous_date+x}" ]]; then
+  #echo "$file_data"
+     file_data=$( echo "$file_data" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date < strftime(\"$previous_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+ # echo "$file_data"
+
+  echo "$file_data"| grep "$curr_selector" | grep "^${!trader_username};*.;*.;*." | cut -d ';' -f3 | sort | uniq
   exit 0
 fi
 
