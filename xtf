@@ -253,6 +253,29 @@ fi
 
 
 
+# Fallback basically same as `list`
+#if [ "${!curr_arg}" = "list" ]; then
+  unzipped=$(read_multiple_files "$@")
+  if [[ ! -z "${previous_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date < strftime(\"$previous_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+  if [[ ! -z "${past_date+x}" ]]; then
+     unzipped=$( echo "$unzipped" | awk -F ';' "{
+   date = strftime(\$2,\"%Y-%m-%d %H:%M:%S\")
+   if (date > strftime(\"$past_date\",\"%Y-%m-%d %H:%M:%S\")){
+     print
+   }
+ }" )
+  fi
+  #echo "$unzipped"
+ echo "$unzipped" | grep "$1;" | grep "$curr_selector"
+ exit 0
+#fi
 
 
 #What the hell is going on here????
