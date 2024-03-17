@@ -90,18 +90,42 @@ do
   fi
 done
 
+
+
+
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo "usecase: $0 [-h|--help] [FILTER] [COMMAND] USER LOG"
+  echo "Usage: $0 <command> [options]
+
+Commands:
+  list         - Display transaction history for a user.
+  list-currency - Display a sorted list of all used currencies.
+  status       - Display the current account balance grouped and sorted by currency.
+  profit       - Display the customer's account balance with simulated profit included.
+
+Options:
+  -b DATETIME  - sprcify using YYYY-MM-DD HH:MM:SS format
+  -c CURRENCY  - Only consider transactions in the specified currency.
+  -h, --help   - Display help with a brief description of each command and option.
+
+Examples:
+  $0 list -a 2023-12-31 23:59:59
+  $0 list-currency -c USD
+  $0 status -b 2023-11-01
+  $0 profit -c EUR"
+  exit 0
+fi
+
 # Check if a file name is provided as an argument
 if [ $# -le 1 ]; then
   #echo "Please specify a file name as an argument."
   exit 1
 fi
-
-
-
-
-if [[ ($arg_count -eq 1 && ("$1" == "--help" || "$1" == '-h')) || $arg_count -le 1 ]]; then
-  echo "usecase: $0 [-h|--help] [FILTER] [COMMAND] USER LOG"
-  exit 0
+# check validity of dates
+invalid_date=$(read_multiple_files "$@" | grep -v "\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])*")
+if [ -z "$invalid_date" ]; then
+  exit 1
 fi
 
 
